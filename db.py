@@ -1,10 +1,8 @@
-import psycopg
-import os
-from dotenv import load_dotenv
+# db.py
+import psycopg2
 
-load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = "postgresql://neondb_owner:npg_mY6C7dtGLoqc@ep-jolly-shadow-agrl63em-pooler.c-2.eu-central-1.aws.neon.tech/school-club-system?sslmode=require&channel_binding=require"
 
 def get_connection():
-    return psycopg.connect(DATABASE_URL)
+    return psycopg2.connect(DATABASE_URL)
+
