@@ -8,7 +8,7 @@ def create_tables():
     # Clubs table
     cur.execute("""
     CREATE TABLE IF NOT EXISTS clubs (
-        id SERIAL PRIMARY KEY,
+        club_id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT
     )
@@ -17,7 +17,7 @@ def create_tables():
     # Students table
     cur.execute("""
     CREATE TABLE IF NOT EXISTS students (
-        id SERIAL PRIMARY KEY,
+        student_id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL
     )
@@ -26,9 +26,9 @@ def create_tables():
     # Memberships table
     cur.execute("""
     CREATE TABLE IF NOT EXISTS memberships (
-        id SERIAL PRIMARY KEY,
-        student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
-        club_id INTEGER REFERENCES clubs(id) ON DELETE CASCADE
+        membership_id SERIAL PRIMARY KEY,
+        student_id INTEGER REFERENCES students(student_id) ON DELETE CASCADE,
+        club_id INTEGER REFERENCES clubs(club_id) ON DELETE CASCADE
     )
     """)
 

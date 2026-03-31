@@ -1,26 +1,29 @@
+# app.py
 from models import create_tables
 from db import get_connection
 
+# ---------------- Clubs ----------------
 def add_club():
     name = input("Club name: ")
     description = input("Description: ")
-    club_id = input("Club id: ")
 
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO clubs (name, description, club_id) VALUES (%s, %s, %s)",
-        (name, description, club_id)
+        "INSERT INTO clubs (name, description) VALUES (%s, %s) RETURNING club_id",
+        (name, description)
     )
+    club_id = cur.fetchone()[0]
     conn.commit()
     cur.close()
     conn.close()
-    print("✅ Club added!")
+
+    print(f"✅ Club added with ID: {club_id}")
 
 def view_clubs():
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, name, description FROM clubs")
+    cur.execute("SELECT club_id, name, description FROM clubs")
     clubs = cur.fetchall()
     if clubs:
         for club in clubs:
@@ -34,7 +37,7 @@ def delete_club():
     club_id = input("Enter Club ID to delete: ")
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("DELETE FROM clubs WHERE id=%s RETURNING id", (club_id,))
+    cur.execute("DELETE FROM clubs WHERE club_id=%s RETURNING club_id", (club_id,))
     if cur.fetchone():
         conn.commit()
         print("✅ Club deleted!")
@@ -43,26 +46,28 @@ def delete_club():
     cur.close()
     conn.close()
 
+# ---------------- Students ----------------
 def add_student():
     name = input("Student name: ")
     email = input("Email: ")
-    student_id = input("Student id: ")
 
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO students (name, email, student_id) VALUES (%s, %s, %s)",
-        (name, email, student_id)
+        "INSERT INTO students (name, email) VALUES (%s, %s) RETURNING student_id",
+        (name, email)
     )
+    student_id = cur.fetchone()[0]
     conn.commit()
     cur.close()
     conn.close()
-    print("✅ Student added!")
+
+    print(f"✅ Student added with ID: {student_id}")
 
 def view_students():
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, name, email FROM students")
+    cur.execute("SELECT student_id, name, email FROM students")
     students = cur.fetchall()
     if students:
         for student in students:
@@ -76,7 +81,7 @@ def delete_student():
     student_id = input("Enter Student ID to delete: ")
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("DELETE FROM students WHERE id=%s RETURNING id", (student_id,))
+    cur.execute("DELETE FROM students WHERE student_id=%s RETURNING student_id", (student_id,))
     if cur.fetchone():
         conn.commit()
         print("✅ Student deleted!")
@@ -85,35 +90,46 @@ def delete_student():
     cur.close()
     conn.close()
 
+# ---------------- Memberships ----------------
 def join_club():
     student_id = input("Student ID: ")
     club_id = input("Club ID: ")
 
     conn = get_connection()
     cur = conn.cursor()
+
     # Validate student
-    cur.execute("SELECT id FROM students WHERE id=%s", (student_id,))
+    cur.execute("SELECT student_id FROM students WHERE student_id=%s", (student_id,))
     if not cur.fetchone():
         print("❌ Student not found.")
         cur.close()
         conn.close()
         return
+
     # Validate club
-    cur.execute("SELECT id FROM clubs WHERE id=%s", (club_id,))
+    cur.execute("SELECT club_id FROM clubs WHERE club_id=%s", (club_id,))
     if not cur.fetchone():
         print("❌ Club not found.")
         cur.close()
         conn.close()
         return
+
     # Check if already a member
-    cur.execute("SELECT id FROM memberships WHERE student_id=%s AND club_id=%s", (student_id, club_id))
+    cur.execute(
+        "SELECT membership_id FROM memberships WHERE student_id=%s AND club_id=%s",
+        (student_id, club_id)
+    )
     if cur.fetchone():
         print("❌ Student already in club.")
         cur.close()
         conn.close()
         return
+
     # Add membership
-    cur.execute("INSERT INTO memberships (student_id, club_id) VALUES (%s, %s)", (student_id, club_id))
+    cur.execute(
+        "INSERT INTO memberships (student_id, club_id) VALUES (%s, %s)",
+        (student_id, club_id)
+    )
     conn.commit()
     cur.close()
     conn.close()
@@ -124,7 +140,10 @@ def exit_club():
     club_id = input("Club ID: ")
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("DELETE FROM memberships WHERE student_id=%s AND club_id=%s RETURNING id", (student_id, club_id))
+    cur.execute(
+        "DELETE FROM memberships WHERE student_id=%s AND club_id=%s RETURNING membership_id",
+        (student_id, club_id)
+    )
     if cur.fetchone():
         conn.commit()
         print("✅ Student exited club!")
@@ -133,6 +152,7 @@ def exit_club():
     cur.close()
     conn.close()
 
+# ---------------- Menu ----------------
 def menu():
     create_tables()
     while True:
